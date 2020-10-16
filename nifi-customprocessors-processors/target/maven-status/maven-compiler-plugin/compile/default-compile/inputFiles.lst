@@ -1,0 +1,11 @@
+/Users/felipe/eclipse-workspace/nifi/customprocessors/nifi-customprocessors-processors/src/main/java/br/gov/sp/fazenda/processors/db/impl/GenericDatabaseAdapter.java
+/Users/felipe/eclipse-workspace/nifi/customprocessors/nifi-customprocessors-processors/src/main/java/br/gov/sp/fazenda/processors/sql/DefaultAvroSqlWriter.java
+/Users/felipe/eclipse-workspace/nifi/customprocessors/nifi-customprocessors-processors/src/main/java/br/gov/sp/fazenda/processors/sql/SqlWriter.java
+/Users/felipe/eclipse-workspace/nifi/customprocessors/nifi-customprocessors-processors/src/main/java/br/gov/sp/fazenda/processors/db/impl/MySQLDatabaseAdapter.java
+/Users/felipe/eclipse-workspace/nifi/customprocessors/nifi-customprocessors-processors/src/main/java/br/gov/sp/fazenda/processors/util/JdbcProperties.java
+/Users/felipe/eclipse-workspace/nifi/customprocessors/nifi-customprocessors-processors/src/main/java/br/gov/sp/fazenda/processors/QueryDatabaseTable.java
+/Users/felipe/eclipse-workspace/nifi/customprocessors/nifi-customprocessors-processors/src/main/java/br/gov/sp/fazenda/processors/db/impl/MSSQLDatabaseAdapter.java
+/Users/felipe/eclipse-workspace/nifi/customprocessors/nifi-customprocessors-processors/src/main/java/br/gov/sp/fazenda/processors/db/impl/OracleDatabaseAdapter.java
+/Users/felipe/eclipse-workspace/nifi/customprocessors/nifi-customprocessors-processors/src/main/java/br/gov/sp/fazenda/processors/AbstractDatabaseFetchProcessor.java
+/Users/felipe/eclipse-workspace/nifi/customprocessors/nifi-customprocessors-processors/src/main/java/br/gov/sp/fazenda/processors/AbstractQueryDatabaseTable.java
+/Users/felipe/eclipse-workspace/nifi/customprocessors/nifi-customprocessors-processors/src/main/java/br/gov/sp/fazenda/processors/db/DatabaseAdapter.java
