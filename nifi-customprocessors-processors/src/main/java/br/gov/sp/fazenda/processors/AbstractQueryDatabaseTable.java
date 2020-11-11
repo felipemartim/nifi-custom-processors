@@ -482,7 +482,7 @@ public abstract class AbstractQueryDatabaseTable extends AbstractDatabaseFetchPr
                     for (int i = 1; i <= nrOfColumns; i++) {
                         String colName = meta.getColumnName(i).toLowerCase();
                         String fullyQualifiedMaxValueKey = getStateKey(tableName, colName, dbAdapter);
-                        Integer type = columnTypeMap.get(fullyQualifiedMaxValueKey);
+                        Integer type = -5; //columnTypeMap.get(fullyQualifiedMaxValueKey);
                         // Skip any columns we're not keeping track of or whose value is null
                         if (type == null || resultSet.getObject(i) == null) {
                             continue;

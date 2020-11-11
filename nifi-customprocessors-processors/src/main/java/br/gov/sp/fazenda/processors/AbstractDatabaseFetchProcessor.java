@@ -89,6 +89,7 @@ import static java.sql.Types.VARCHAR;
  */
 public abstract class AbstractDatabaseFetchProcessor extends AbstractSessionFactoryProcessor {
 
+	public static final String stateKey = "maxval";
     public static final String INITIAL_MAX_VALUE_PROP_START = "initial.maxvalue.";
     public static final String FRAGMENT_ID = FragmentAttributes.FRAGMENT_ID.key();
     public static final String FRAGMENT_INDEX = FragmentAttributes.FRAGMENT_INDEX.key();
@@ -109,14 +110,14 @@ public abstract class AbstractDatabaseFetchProcessor extends AbstractSessionFact
             .required(true)
             .identifiesControllerService(DBCPService.class)
             .build();
-
+    
     public static final PropertyDescriptor TABLE_NAME = new PropertyDescriptor.Builder()
-            .name("Table Name")
-            .description("The name of the database table to be queried.")
-            .required(true)
-            .addValidator(StandardValidators.NON_EMPTY_VALIDATOR)
-            .expressionLanguageSupported(ExpressionLanguageScope.FLOWFILE_ATTRIBUTES)
-            .build();
+    		.name("Table Name")
+    		.description("The name of the database table to be queried.")
+    		.required(true)
+    		.addValidator(StandardValidators.NON_EMPTY_VALIDATOR)
+    		.expressionLanguageSupported(ExpressionLanguageScope.FLOWFILE_ATTRIBUTES)
+    		.build();
 
     public static final PropertyDescriptor COLUMN_NAMES = new PropertyDescriptor.Builder()
             .name("Columns to Return")
@@ -246,72 +247,85 @@ public abstract class AbstractDatabaseFetchProcessor extends AbstractSessionFact
                 setupComplete.set(true);
                 return;
             }
+            
+            if (shouldCleanCache) {
+                columnTypeMap.clear();
+            }
 
-            // Try to fill the columnTypeMap with the types of the desired max-value columns
-            final DBCPService dbcpService = context.getProperty(DBCP_SERVICE).asControllerService(DBCPService.class);
-            final String tableName = context.getProperty(TABLE_NAME).evaluateAttributeExpressions(flowFile).getValue();
-            final String sqlQuery = context.getProperty(SQL_QUERY).evaluateAttributeExpressions().getValue();
+            final List<String> maxValueColumnNameList = Arrays.asList(maxValueColumnNames.toLowerCase().split(","));
 
             final DatabaseAdapter dbAdapter = dbAdapters.get(context.getProperty(DB_TYPE).getValue());
-            try (final Connection con = dbcpService.getConnection(flowFile == null ? Collections.emptyMap() : flowFile.getAttributes());
-                 final Statement st = con.createStatement()) {
-
-                // Try a query that returns no rows, for the purposes of getting metadata about the columns. It is possible
-                // to use DatabaseMetaData.getColumns(), but not all drivers support this, notably the schema-on-read
-                // approach as in Apache Drill
-                String query;
-
-                if (StringUtils.isEmpty(sqlQuery)) {
-                    query = dbAdapter.getSelectStatement(tableName, maxValueColumnNames, "1 = 0", null, null, null);
-                } else {
-                    StringBuilder sbQuery = getWrappedQuery(dbAdapter, sqlQuery, tableName);
-                    sbQuery.append(" WHERE 1=0");
-
-                    query = sbQuery.toString();
-                }
-
-                ResultSet resultSet = st.executeQuery(query);
-                ResultSetMetaData resultSetMetaData = resultSet.getMetaData();
-                int numCols = resultSetMetaData.getColumnCount();
-                if (numCols > 0) {
-                    if (shouldCleanCache) {
-                        columnTypeMap.clear();
-                    }
-
-                    final List<String> maxValueColumnNameList = Arrays.asList(maxValueColumnNames.toLowerCase().split(","));
-                    final List<String> maxValueQualifiedColumnNameList = new ArrayList<>();
-
-                    for (String maxValueColumn:maxValueColumnNameList) {
-                        String colKey = getStateKey(tableName, maxValueColumn.trim(), dbAdapter);
-                        maxValueQualifiedColumnNameList.add(colKey);
-                    }
-
-                    for (int i = 1; i <= numCols; i++) {
-                        String colName = resultSetMetaData.getColumnName(i).toLowerCase();
-                        String colKey = getStateKey(tableName, colName, dbAdapter);
-
-                        //only include columns that are part of the maximum value tracking column list
-                        if (!maxValueQualifiedColumnNameList.contains(colKey)) {
-                            continue;
-                        }
-
-                        int colType = resultSetMetaData.getColumnType(i);
-                        columnTypeMap.putIfAbsent(colKey, colType);
-                    }
-
-                    for (String maxValueColumn:maxValueColumnNameList) {
-                        String colKey = getStateKey(tableName, maxValueColumn.trim().toLowerCase(), dbAdapter);
-                        if (!columnTypeMap.containsKey(colKey)) {
-                            throw new ProcessException("Column not found in the table/query specified: " + maxValueColumn);
-                        }
-                    }
-                } else {
-                    throw new ProcessException("No columns found in table from those specified: " + maxValueColumnNames);
-                }
-
-            } catch (SQLException e) {
-                throw new ProcessException("Unable to communicate with database in order to determine column types", e);
+            
+            for (String maxValueColumn:maxValueColumnNameList) {
+                String colKey = getStateKey(stateKey, maxValueColumn.trim(), dbAdapter);
+                columnTypeMap.putIfAbsent(colKey, -5); //BIGINT
             }
+            
+//
+//            // Try to fill the columnTypeMap with the types of the desired max-value columns
+//            final DBCPService dbcpService = context.getProperty(DBCP_SERVICE).asControllerService(DBCPService.class);
+//            final String sqlQuery = context.getProperty(SQL_QUERY).evaluateAttributeExpressions().getValue();
+//
+//            final DatabaseAdapter dbAdapter = dbAdapters.get(context.getProperty(DB_TYPE).getValue());
+//            try (final Connection con = dbcpService.getConnection(flowFile == null ? Collections.emptyMap() : flowFile.getAttributes());
+//                 final Statement st = con.createStatement()) {
+//
+//                // Try a query that returns no rows, for the purposes of getting metadata about the columns. It is possible
+//                // to use DatabaseMetaData.getColumns(), but not all drivers support this, notably the schema-on-read
+//                // approach as in Apache Drill
+//                String query;
+//
+//                if (StringUtils.isEmpty(sqlQuery)) {
+//                    query = dbAdapter.getSelectStatement(stateKey, maxValueColumnNames, "1 = 0", null, null, null);
+//                } else {
+//                    StringBuilder sbQuery = getWrappedQuery(dbAdapter, sqlQuery, tableName);
+//                    sbQuery.append(" WHERE 1=0");
+//
+//                    query = sbQuery.toString();
+//                }
+//
+//                ResultSet resultSet = st.executeQuery(query);
+//                ResultSetMetaData resultSetMetaData = resultSet.getMetaData();
+//                int numCols = resultSetMetaData.getColumnCount();
+//                if (numCols > 0) {
+//                    if (shouldCleanCache) {
+//                        columnTypeMap.clear();
+//                    }
+//
+//                    final List<String> maxValueColumnNameList = Arrays.asList(maxValueColumnNames.toLowerCase().split(","));
+//                    final List<String> maxValueQualifiedColumnNameList = new ArrayList<>();
+//
+//                    for (String maxValueColumn:maxValueColumnNameList) {
+//                        String colKey = getStateKey(stateKey, maxValueColumn.trim(), dbAdapter);
+//                        maxValueQualifiedColumnNameList.add(colKey);
+//                    }
+//
+//                    for (int i = 1; i <= numCols; i++) {
+//                        String colName = resultSetMetaData.getColumnName(i).toLowerCase();
+//                        String colKey = getStateKey(stateKey, colName, dbAdapter);
+//
+//                        //only include columns that are part of the maximum value tracking column list
+//                        if (!maxValueQualifiedColumnNameList.contains(colKey)) {
+//                            continue;
+//                        }
+//
+//                        int colType = resultSetMetaData.getColumnType(i);
+//                        columnTypeMap.putIfAbsent(colKey, colType);
+//                    }
+//
+//                    for (String maxValueColumn:maxValueColumnNameList) {
+//                        String colKey = getStateKey(tableName, maxValueColumn.trim().toLowerCase(), dbAdapter);
+//                        if (!columnTypeMap.containsKey(colKey)) {
+//                            throw new ProcessException("Column not found in the table/query specified: " + maxValueColumn);
+//                        }
+//                    }
+//                } else {
+//                    throw new ProcessException("No columns found in table from those specified: " + maxValueColumnNames);
+//                }
+//
+//            } catch (SQLException e) {
+//                throw new ProcessException("Unable to communicate with database in order to determine column types", e);
+//            }
             setupComplete.set(true);
         }
     }

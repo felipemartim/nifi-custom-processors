@@ -24,7 +24,7 @@
 
     <groupId>br.gov.sp.fazenda</groupId>
     <artifactId>customprocessors</artifactId>
-    <version>0.2</version>
+    <version>0.4</version>
     <packaging>pom</packaging>
 
     <modules>
