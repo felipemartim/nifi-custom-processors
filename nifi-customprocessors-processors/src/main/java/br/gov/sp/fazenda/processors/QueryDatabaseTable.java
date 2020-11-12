@@ -18,7 +18,6 @@ package br.gov.sp.fazenda.processors;
 
 import static br.gov.sp.fazenda.processors.util.JdbcProperties.DEFAULT_PRECISION;
 import static br.gov.sp.fazenda.processors.util.JdbcProperties.DEFAULT_SCALE;
-import static br.gov.sp.fazenda.processors.util.JdbcProperties.NORMALIZE_NAMES_FOR_AVRO;
 import static br.gov.sp.fazenda.processors.util.JdbcProperties.USE_AVRO_LOGICAL_TYPES;
 
 import java.io.IOException;
@@ -65,12 +64,11 @@ import org.apache.nifi.processor.ProcessSession;
 import org.apache.nifi.processor.ProcessSessionFactory;
 import org.apache.nifi.processor.Relationship;
 import org.apache.nifi.processor.exception.ProcessException;
-import org.apache.nifi.processor.util.StandardValidators;
-
-import br.gov.sp.fazenda.processors.AbstractQueryDatabaseTable.MaxValueResultSetRowCollector;
 import br.gov.sp.fazenda.processors.db.DatabaseAdapter;
 import br.gov.sp.fazenda.processors.sql.DefaultAvroSqlWriter;
+import br.gov.sp.fazenda.processors.sql.RecordSqlWriter;
 import br.gov.sp.fazenda.processors.sql.SqlWriter;
+import org.apache.nifi.serialization.RecordSetWriterFactory;
 import br.gov.sp.fazenda.processors.util.JdbcCommon;
 
 import org.apache.nifi.util.StopWatch;
@@ -110,6 +108,24 @@ import org.apache.nifi.util.StopWatch;
 		+ "be added in the format `initial.maxvalue.<max_value_column>`. This value is only used the first time the table is accessed (when a Maximum Value Column is specified).")
 @PrimaryNodeOnly
 public class QueryDatabaseTable extends AbstractQueryDatabaseTable {
+	
+    public static final PropertyDescriptor RECORD_WRITER_FACTORY = new PropertyDescriptor.Builder()
+            .name("qdbtr-record-writer")
+            .displayName("Record Writer")
+            .description("Specifies the Controller Service to use for writing results to a FlowFile. The Record Writer may use Inherit Schema to emulate the inferred schema behavior, i.e. "
+                    + "an explicit schema need not be defined in the writer, and will be supplied by the same logic used to infer the schema from the column types.")
+            .identifiesControllerService(RecordSetWriterFactory.class)
+            .required(true)
+            .build();
+
+    public static final PropertyDescriptor NORMALIZE_NAMES = new PropertyDescriptor.Builder()
+            .name("qdbtr-normalize")
+            .displayName("Normalize Table/Column Names")
+            .description("Whether to change characters in column names when creating the output schema. For example, colons and periods will be changed to underscores.")
+            .allowableValues("true", "false")
+            .defaultValue("false")
+            .required(true)
+            .build();
 
 	public QueryDatabaseTable() {
 		final Set<Relationship> r = new HashSet<>();
@@ -126,13 +142,14 @@ public class QueryDatabaseTable extends AbstractQueryDatabaseTable {
 //        pds.add(COLUMN_NAMES);
 //        pds.add(WHERE_CLAUSE);
 		pds.add(SQL_QUERY);
+		pds.add(RECORD_WRITER_FACTORY);
 		pds.add(MAX_VALUE_COLUMN_NAMES);
 		pds.add(QUERY_TIMEOUT);
 		pds.add(FETCH_SIZE);
 		pds.add(MAX_ROWS_PER_FLOW_FILE);
 		pds.add(OUTPUT_BATCH_SIZE);
 		pds.add(MAX_FRAGMENTS);
-		pds.add(NORMALIZE_NAMES_FOR_AVRO);
+		pds.add(NORMALIZE_NAMES);
 		pds.add(TRANS_ISOLATION_LEVEL);
 		pds.add(USE_AVRO_LOGICAL_TYPES);
 		pds.add(DEFAULT_PRECISION);
@@ -427,7 +444,7 @@ public class QueryDatabaseTable extends AbstractQueryDatabaseTable {
 	@Override
 	protected SqlWriter configureSqlWriter(ProcessSession session, ProcessContext context) {
 //        final String tableName = context.getProperty(TABLE_NAME).evaluateAttributeExpressions().getValue();
-		final boolean convertNamesForAvro = context.getProperty(NORMALIZE_NAMES_FOR_AVRO).asBoolean();
+		final boolean convertNamesForAvro = context.getProperty(NORMALIZE_NAMES).asBoolean();
 		final Boolean useAvroLogicalTypes = context.getProperty(USE_AVRO_LOGICAL_TYPES).asBoolean();
 		final Integer maxRowsPerFlowFile = context.getProperty(MAX_ROWS_PER_FLOW_FILE).evaluateAttributeExpressions()
 				.asInteger();
@@ -439,6 +456,8 @@ public class QueryDatabaseTable extends AbstractQueryDatabaseTable {
 //                .recordName(tableName)
 				.convertNames(convertNamesForAvro).useLogicalTypes(useAvroLogicalTypes)
 				.defaultPrecision(defaultPrecision).defaultScale(defaultScale).maxRows(maxRowsPerFlowFile).build();
-		return new DefaultAvroSqlWriter(options);
+		
+		final RecordSetWriterFactory recordSetWriterFactory = context.getProperty(RECORD_WRITER_FACTORY).asControllerService(RecordSetWriterFactory.class);
+		return new RecordSqlWriter(recordSetWriterFactory, options, maxRowsPerFlowFile, Collections.emptyMap());
 	}
 }

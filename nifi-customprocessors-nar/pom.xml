@@ -19,11 +19,10 @@
     <parent>
         <groupId>br.gov.sp.fazenda</groupId>
         <artifactId>customprocessors</artifactId>
-        <version>0.6</version>
+        <version>0.7</version>
     </parent>
 
     <artifactId>nifi-customprocessors-nar</artifactId>
-    <version>0.6</version>
     <packaging>nar</packaging>
     <properties>
         <maven.javadoc.skip>true</maven.javadoc.skip>
@@ -34,7 +33,7 @@
         <dependency>
             <groupId>br.gov.sp.fazenda</groupId>
             <artifactId>nifi-customprocessors-processors</artifactId>
-            <version>0.6</version>
+            <version>0.7</version>
         </dependency>
         <dependency>
 	        <groupId>org.apache.nifi</groupId>

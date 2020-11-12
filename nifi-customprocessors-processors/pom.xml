@@ -19,7 +19,7 @@
     <parent>
         <groupId>br.gov.sp.fazenda</groupId>
         <artifactId>customprocessors</artifactId>
-        <version>0.6</version>
+        <version>0.7</version>
     </parent>
 
     <artifactId>nifi-customprocessors-processors</artifactId>
@@ -50,6 +50,16 @@
 	        <artifactId>nifi-dbcp-service-api</artifactId>
 	        <version>1.12.0</version>
 	    </dependency>
+	   	<dependency>
+	        <groupId>org.apache.nifi</groupId>
+	        <artifactId>nifi-record-serialization-service-api</artifactId>
+	        <version>1.12.0</version>
+	    </dependency>
+	    <dependency>
+			<groupId>org.apache.nifi</groupId>
+			<artifactId>nifi-record</artifactId>
+			<version>1.12.0</version>
+		</dependency>    
 	    <dependency>
 	        <groupId>org.apache.nifi</groupId>
 	        <artifactId>nifi-database-utils</artifactId>
