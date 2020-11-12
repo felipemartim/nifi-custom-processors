@@ -19,13 +19,15 @@ package br.gov.sp.fazenda.processors.sql;
 import org.apache.nifi.logging.ComponentLog;
 import org.apache.nifi.processor.ProcessSession;
 
+import br.gov.sp.fazenda.processors.util.JdbcCommon.ResultSetRowCallback;
+
 import java.io.IOException;
 import java.io.OutputStream;
 import java.sql.ResultSet;
 import java.util.Collections;
 import java.util.Map;
 
-import static org.apache.nifi.util.db.JdbcCommon.ResultSetRowCallback;
+//import static org.apache.nifi.util.db.JdbcCommon.ResultSetRowCallback;
 
 
 /**

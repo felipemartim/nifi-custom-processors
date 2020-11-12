@@ -51,6 +51,7 @@ import org.apache.nifi.annotation.behavior.WritesAttribute;
 import org.apache.nifi.annotation.behavior.WritesAttributes;
 import org.apache.nifi.annotation.documentation.CapabilityDescription;
 import org.apache.nifi.annotation.documentation.Tags;
+import org.apache.nifi.annotation.lifecycle.OnScheduled;
 import org.apache.nifi.components.PropertyDescriptor;
 import org.apache.nifi.components.state.Scope;
 import org.apache.nifi.components.state.StateManager;
@@ -70,9 +71,10 @@ import br.gov.sp.fazenda.processors.AbstractQueryDatabaseTable.MaxValueResultSet
 import br.gov.sp.fazenda.processors.db.DatabaseAdapter;
 import br.gov.sp.fazenda.processors.sql.DefaultAvroSqlWriter;
 import br.gov.sp.fazenda.processors.sql.SqlWriter;
+import br.gov.sp.fazenda.processors.util.JdbcCommon;
 
 import org.apache.nifi.util.StopWatch;
-import org.apache.nifi.util.db.JdbcCommon;
+//import org.apache.nifi.util.db.JdbcCommon;
 
 @TriggerSerially
 @InputRequirement(Requirement.INPUT_FORBIDDEN)
@@ -138,6 +140,11 @@ public class QueryDatabaseTable extends AbstractQueryDatabaseTable {
 
 		propDescriptors = Collections.unmodifiableList(pds);
 	}
+	
+    @OnScheduled
+    public void setup(final ProcessContext context) {
+        maxValueProperties = getDefaultMaxValueProperties(context, null);
+    }
 
 	@Override
 	public void onTrigger(final ProcessContext context, final ProcessSessionFactory sessionFactory)
@@ -398,7 +405,7 @@ public class QueryDatabaseTable extends AbstractQueryDatabaseTable {
 				String maxValueKey = getStateKey(stateKey, colName, dbAdapter);
 				String maxValue = stateMap.get(maxValueKey);
 				if (!StringUtils.isEmpty(maxValue)) {
-					Integer type = -5; //columnTypeMap.get(maxValueKey);
+					Integer type = columnTypeMap.get(maxValueKey);
 //					if (type == null) {
 //						// This shouldn't happen as we are populating columnTypeMap when the processor
 //						// is scheduled.

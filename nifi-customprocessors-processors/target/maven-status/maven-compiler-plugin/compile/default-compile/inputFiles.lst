@@ -7,5 +7,6 @@
 /Users/felipe/eclipse-workspace/nifi/customprocessors/nifi-customprocessors-processors/src/main/java/br/gov/sp/fazenda/processors/db/impl/MSSQLDatabaseAdapter.java
 /Users/felipe/eclipse-workspace/nifi/customprocessors/nifi-customprocessors-processors/src/main/java/br/gov/sp/fazenda/processors/db/impl/OracleDatabaseAdapter.java
 /Users/felipe/eclipse-workspace/nifi/customprocessors/nifi-customprocessors-processors/src/main/java/br/gov/sp/fazenda/processors/AbstractDatabaseFetchProcessor.java
+/Users/felipe/eclipse-workspace/nifi/customprocessors/nifi-customprocessors-processors/src/main/java/br/gov/sp/fazenda/processors/util/JdbcCommon.java
 /Users/felipe/eclipse-workspace/nifi/customprocessors/nifi-customprocessors-processors/src/main/java/br/gov/sp/fazenda/processors/AbstractQueryDatabaseTable.java
 /Users/felipe/eclipse-workspace/nifi/customprocessors/nifi-customprocessors-processors/src/main/java/br/gov/sp/fazenda/processors/db/DatabaseAdapter.java

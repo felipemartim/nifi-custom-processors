@@ -37,8 +37,10 @@ import org.apache.nifi.processor.exception.ProcessException;
 import org.apache.nifi.processor.util.StandardValidators;
 import br.gov.sp.fazenda.processors.db.DatabaseAdapter;
 import br.gov.sp.fazenda.processors.sql.SqlWriter;
+import br.gov.sp.fazenda.processors.util.JdbcCommon.ResultSetRowCallback;
+
 import org.apache.nifi.util.StopWatch;
-import org.apache.nifi.util.db.JdbcCommon;
+//import org.apache.nifi.util.db.JdbcCommon;
 
 import java.io.IOException;
 import java.sql.Connection;
@@ -162,11 +164,6 @@ public abstract class AbstractQueryDatabaseTable extends AbstractDatabaseFetchPr
                 .expressionLanguageSupported(ExpressionLanguageScope.VARIABLE_REGISTRY)
                 .dynamic(true)
                 .build();
-    }
-
-    @OnScheduled
-    public void setup(final ProcessContext context) {
-        maxValueProperties = getDefaultMaxValueProperties(context, null);
     }
 
     @OnStopped
@@ -453,7 +450,7 @@ public abstract class AbstractQueryDatabaseTable extends AbstractDatabaseFetchPr
         return query.toString();
     }
 
-    public class MaxValueResultSetRowCollector implements JdbcCommon.ResultSetRowCallback {
+    public class MaxValueResultSetRowCollector implements ResultSetRowCallback {
         DatabaseAdapter dbAdapter;
         final Map<String, String> newColMap;
         final Map<String, String> originalState;
@@ -482,7 +479,7 @@ public abstract class AbstractQueryDatabaseTable extends AbstractDatabaseFetchPr
                     for (int i = 1; i <= nrOfColumns; i++) {
                         String colName = meta.getColumnName(i).toLowerCase();
                         String fullyQualifiedMaxValueKey = getStateKey(tableName, colName, dbAdapter);
-                        Integer type = -5; //columnTypeMap.get(fullyQualifiedMaxValueKey);
+                        Integer type = columnTypeMap.get(fullyQualifiedMaxValueKey);
                         // Skip any columns we're not keeping track of or whose value is null
                         if (type == null || resultSet.getObject(i) == null) {
                             continue;

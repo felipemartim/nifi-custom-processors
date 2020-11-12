@@ -19,7 +19,7 @@
     <parent>
         <groupId>br.gov.sp.fazenda</groupId>
         <artifactId>customprocessors</artifactId>
-        <version>0.4</version>
+        <version>0.6</version>
     </parent>
 
     <artifactId>nifi-customprocessors-processors</artifactId>

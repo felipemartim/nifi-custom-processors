@@ -19,7 +19,11 @@ package br.gov.sp.fazenda.processors.sql;
 import org.apache.nifi.flowfile.attributes.CoreAttributes;
 import org.apache.nifi.logging.ComponentLog;
 import org.apache.nifi.processor.exception.ProcessException;
-import org.apache.nifi.util.db.JdbcCommon;
+//import org.apache.nifi.util.db.JdbcCommon;
+
+import br.gov.sp.fazenda.processors.util.JdbcCommon;
+import br.gov.sp.fazenda.processors.util.JdbcCommon.AvroConversionOptions;
+import br.gov.sp.fazenda.processors.util.JdbcCommon.ResultSetRowCallback;
 
 import java.io.IOException;
 import java.io.OutputStream;
@@ -28,8 +32,8 @@ import java.sql.SQLException;
 import java.util.HashMap;
 import java.util.Map;
 
-import static org.apache.nifi.util.db.JdbcCommon.AvroConversionOptions;
-import static org.apache.nifi.util.db.JdbcCommon.ResultSetRowCallback;
+//import static org.apache.nifi.util.db.JdbcCommon.AvroConversionOptions;
+//import static org.apache.nifi.util.db.JdbcCommon.ResultSetRowCallback;
 
 public class DefaultAvroSqlWriter implements SqlWriter {
 
